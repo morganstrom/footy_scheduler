@@ -17,32 +17,11 @@ För att bygga projektet behöver du Node.js och npm installerat på din dator. 
 1. **Kloning eller nedladdning**: kopiera projektmappen `footy_scheduler` till din lokala dator.
 2. **Installera TypeScript** (om du inte redan har det):
    ```bash
-   npm install -g typescript
+   npm install
    ```
-   Detta installerar kommandot `tsc` globalt så att du kan kompilera TypeScript.
-3. **Kompilera TypeScript**:
-
-   I projektmappen finns en `tsconfig.json` som beskriver hur koden ska kompileras. Navigera till mappen `footy_scheduler` och kör:
-   ```bash
-   cd footy_scheduler
-   tsc
-   ```
-   Kommandot `tsc` läser `tsconfig.json` och kompileringen följer inställningarna där. Som standard omvandlas `main.ts` till `main.js` i samma mapp. Varje gång du gör ändringar i TypeScript‑koden kör du `tsc` igen för att generera en uppdaterad JavaScript‑fil. Du kan öppna `tsconfig.json` för att se eller ändra vilka ECMAScript‑versioner och modulformat som används.
 
 ## Köra applikationen
 
-När `main.js` har genererats kan du öppna `index.html` direkt i din webbläsare.
-
-1. Öppna filen `footy_scheduler/index.html` i en modern webbläsare (t.ex. Chrome, Edge eller Firefox). Dubbelklicka på filen eller dra den till webbläsarfönstret.
-2. Följ instruktionerna i sidopanelen: ange spelarnamn, dela lagen och generera scheman.
-
-Eftersom applikationen är helt statisk behövs ingen webbserver – allt körs lokalt i webbläsaren.
-
-## Anpassningar
-
-- **Ändra kompilatorinställningar**: du kan justera `tsconfig.json` för att ändra mål‑ECMAScript‑version, modulformat eller andra TypeScript‑inställningar.
-- **Lägga till funktioner**: TypeScript‑koden finns i `main.ts`. Här kan du lägga till ytterligare logik, till exempel exportfunktioner eller olika inställningar för de två lagen.
-
-## Testning
-
-Tester är implementerade med Jest. Du kan köra testerna med kommandot `npm test`.
+```bash
+npm run dev
+```
