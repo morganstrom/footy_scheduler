@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Fotbollslag Spelschema Planerare
  *
