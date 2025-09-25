@@ -12,7 +12,7 @@
  * möjligt. Resultatet presenteras i ett tabellformat.
  */
 
-interface Player {
+export interface Player {
   name: string;
   totalMinutes: number;
   /**
@@ -23,7 +23,7 @@ interface Player {
   lastShiftIndex: number;
 }
 
-interface ScheduleAssignment {
+export interface ScheduleAssignment {
   matchIndex: number;
   shiftIndex: number;
   players: string[];
@@ -34,7 +34,7 @@ interface ScheduleAssignment {
  * schematilldelningar, en uppsummering av varje spelares totala speltid
  * och antalet positioner på planen.
  */
-interface ScheduleResult {
+export interface ScheduleResult {
   assignments: ScheduleAssignment[];
   totals: Record<string, number>;
   positions: number;
@@ -49,16 +49,16 @@ interface ScheduleResult {
  * @param positions Antal spelare som spelar samtidigt
  * @returns En lista med schematilldelningar
  */
-function generateSchedule(
+export function generateSchedule(
   playerNames: string[],
   numMatches: number,
   matchLength: number,
   shiftLength: number,
-  positions: number
+  positions: number,
 ): ScheduleResult {
   // Filtera bort tomma eller duplicerade namn och trimma whitespace
   const uniqueNames = Array.from(
-    new Set(playerNames.map((n) => n.trim()).filter((n) => n.length > 0))
+    new Set(playerNames.map((n) => n.trim()).filter((n) => n.length > 0)),
   );
   // Skapa spelare med ackumulatorer
   const players: Player[] = uniqueNames.map((name) => ({
@@ -67,8 +67,7 @@ function generateSchedule(
     lastShiftIndex: -Infinity,
   }));
   const assignments: ScheduleAssignment[] = [];
-  if (players.length === 0)
-    return { assignments, totals: {}, positions };
+  if (players.length === 0) return { assignments, totals: {}, positions };
   // Total tabell med speltider per spelare
   const totals: Record<string, number> = {};
   players.forEach((p) => (totals[p.name] = 0));
@@ -222,7 +221,7 @@ let teamA: string[] = [];
 let teamB: string[] = [];
 
 // Funktion för att blanda en array slumpmässigt (Fisher–Yates)
-function shuffleArray<T>(array: T[]): T[] {
+export function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -258,7 +257,9 @@ navStep2?.addEventListener("click", () => showStep(2));
 // Hantera slumpmässig lagindelning
 const splitBtn = document.getElementById("splitTeamsBtn");
 splitBtn?.addEventListener("click", () => {
-  const playersInputEl = document.getElementById("players") as HTMLTextAreaElement;
+  const playersInputEl = document.getElementById(
+    "players",
+  ) as HTMLTextAreaElement;
   const rawInput = playersInputEl.value;
   const names = rawInput
     .split(/[\n,]+/)
@@ -302,19 +303,19 @@ scheduleFormEl?.addEventListener("submit", (event) => {
   // Läs värden från formuläret
   const matchesInput = parseInt(
     (document.getElementById("matches") as HTMLInputElement).value,
-    10
+    10,
   );
   const matchLengthInput = parseInt(
     (document.getElementById("matchLength") as HTMLInputElement).value,
-    10
+    10,
   );
   const shiftLengthInput = parseInt(
     (document.getElementById("shiftLength") as HTMLInputElement).value,
-    10
+    10,
   );
   const positionsInput = parseInt(
     (document.getElementById("positions") as HTMLInputElement).value,
-    10
+    10,
   );
   // Säkerställ att lag har genererats
   if (teamA.length === 0 || teamB.length === 0) {
@@ -323,7 +324,9 @@ scheduleFormEl?.addEventListener("submit", (event) => {
   }
   // Validera att antalet positioner inte överstiger lagstorlekar
   if (positionsInput > teamA.length || positionsInput > teamB.length) {
-    alert("Antalet positioner kan inte överstiga antalet spelare i något av lagen.");
+    alert(
+      "Antalet positioner kan inte överstiga antalet spelare i något av lagen.",
+    );
     return;
   }
   // Generera och rendera schema för båda lag
@@ -332,14 +335,14 @@ scheduleFormEl?.addEventListener("submit", (event) => {
     matchesInput,
     matchLengthInput,
     shiftLengthInput,
-    positionsInput
+    positionsInput,
   );
   const resultB = generateSchedule(
     teamB,
     matchesInput,
     matchLengthInput,
     shiftLengthInput,
-    positionsInput
+    positionsInput,
   );
   renderSchedule(resultA, outputA as HTMLElement);
   renderSchedule(resultB, outputB as HTMLElement);

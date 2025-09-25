@@ -21,7 +21,7 @@ För att bygga projektet behöver du Node.js och npm installerat på din dator. 
    ```
    Detta installerar kommandot `tsc` globalt så att du kan kompilera TypeScript.
 3. **Kompilera TypeScript**:
-   
+
    I projektmappen finns en `tsconfig.json` som beskriver hur koden ska kompileras. Navigera till mappen `footy_scheduler` och kör:
    ```bash
    cd footy_scheduler
@@ -43,6 +43,6 @@ Eftersom applikationen är helt statisk behövs ingen webbserver – allt körs 
 - **Ändra kompilatorinställningar**: du kan justera `tsconfig.json` för att ändra mål‑ECMAScript‑version, modulformat eller andra TypeScript‑inställningar.
 - **Lägga till funktioner**: TypeScript‑koden finns i `main.ts`. Här kan du lägga till ytterligare logik, till exempel exportfunktioner eller olika inställningar för de två lagen.
 
-## Licens
+## Testning
 
-Detta projekt är öppet för personligt bruk. Anpassa och utöka det gärna efter behov.
+Tester är implementerade med Jest. Du kan köra testerna med kommandot `npm test`.
