@@ -2,7 +2,95 @@
  * App module - handles DOM interactions and imports core functions from main.ts
  */
 
-import { generateSchedule, shuffleArray, type ScheduleResult, type ScheduleAssignment } from './main.js';
+import {
+  generateSchedule,
+  shuffleArray,
+  type ScheduleResult,
+  type ScheduleAssignment,
+} from "./main.js";
+
+// XLSX is loaded from CDN as global variable
+declare const XLSX: any;
+
+/**
+ * Exporterar schemat till Excel-format
+ * @param result Resultat från generateSchedule
+ * @param teamName Namnet på laget
+ */
+function exportToExcel(result: ScheduleResult, teamName: string) {
+  const { assignments, totals, positions } = result;
+
+  if (assignments.length === 0) {
+    alert("Inget schema att exportera.");
+    return;
+  }
+
+  // Skapa arbetsboken
+  const workbook = XLSX.utils.book_new();
+
+  // Grupp tilldelningar per match
+  const grouped: Record<number, ScheduleAssignment[]> = {};
+  for (const ass of assignments) {
+    if (!grouped[ass.matchIndex]) grouped[ass.matchIndex] = [];
+    grouped[ass.matchIndex].push(ass);
+  }
+
+  // Skapa data för schemat
+  const scheduleData: any[] = [];
+
+  Object.keys(grouped)
+    .sort((a, b) => parseInt(a) - parseInt(b))
+    .forEach((matchKey) => {
+      const matchIndex = parseInt(matchKey);
+      const matchAssignments = grouped[matchIndex];
+
+      // Lägg till matchhuvud
+      scheduleData.push([`Match ${matchIndex + 1}`, "", "", "", "", ""]);
+
+      // Lägg till header för byten och spelare
+      const header = ["Byte"];
+      for (let i = 0; i < positions; i++) {
+        header.push(`Spelare ${i + 1}`);
+      }
+      scheduleData.push(header);
+
+      // Lägg till varje byte
+      for (const ass of matchAssignments) {
+        const row = [`${ass.shiftIndex + 1}`];
+        for (let i = 0; i < positions; i++) {
+          row.push(ass.players[i] ?? "");
+        }
+        scheduleData.push(row);
+      }
+
+      // Lägg till tom rad mellan matcher
+      scheduleData.push([]);
+    });
+
+  // Skapa kalkylblad för schemat
+  const scheduleWorksheet = XLSX.utils.aoa_to_sheet(scheduleData);
+  XLSX.utils.book_append_sheet(workbook, scheduleWorksheet, "Schema");
+
+  // Skapa data för total speltid
+  const summaryData: any[] = [
+    ["Total speltid per spelare"],
+    ["Spelare", "Minuter"],
+  ];
+
+  Object.keys(totals)
+    .sort((a, b) => a.localeCompare(b))
+    .forEach((playerName) => {
+      summaryData.push([playerName, totals[playerName]]);
+    });
+
+  // Skapa kalkylblad för sammanställning
+  const summaryWorksheet = XLSX.utils.aoa_to_sheet(summaryData);
+  XLSX.utils.book_append_sheet(workbook, summaryWorksheet, "Speltid");
+
+  // Exportera filen
+  const fileName = `${teamName}_spelschema.xlsx`;
+  XLSX.writeFile(workbook, fileName);
+}
 
 /**
  * Renderar spelschemat och sammanställning i DOM.
@@ -97,6 +185,10 @@ function renderSchedule(result: ScheduleResult, container: HTMLElement) {
 // Globalt lagringsutrymme för lag efter slumpfördelning
 let teamA: string[] = [];
 let teamB: string[] = [];
+
+// Globalt lagringsutrymme för schemaresultat
+let resultA: ScheduleResult | null = null;
+let resultB: ScheduleResult | null = null;
 
 // Navigering mellan steg i sidpanelen
 const navStep1 = document.getElementById("nav-step1");
@@ -198,14 +290,14 @@ scheduleFormEl?.addEventListener("submit", (event) => {
     return;
   }
   // Generera och rendera schema för båda lag
-  const resultA = generateSchedule(
+  resultA = generateSchedule(
     teamA,
     matchesInput,
     matchLengthInput,
     shiftLengthInput,
     positionsInput,
   );
-  const resultB = generateSchedule(
+  resultB = generateSchedule(
     teamB,
     matchesInput,
     matchLengthInput,
@@ -214,4 +306,26 @@ scheduleFormEl?.addEventListener("submit", (event) => {
   );
   renderSchedule(resultA, outputA as HTMLElement);
   renderSchedule(resultB, outputB as HTMLElement);
+
+  // Visa exportknappar
+  const exportBtnA = document.getElementById("exportA");
+  const exportBtnB = document.getElementById("exportB");
+  if (exportBtnA) exportBtnA.style.display = "block";
+  if (exportBtnB) exportBtnB.style.display = "block";
+});
+
+// Event handlers för exportknappar
+const exportBtnA = document.getElementById("exportA");
+const exportBtnB = document.getElementById("exportB");
+
+exportBtnA?.addEventListener("click", () => {
+  if (resultA) {
+    exportToExcel(resultA, "Norrviken_Svart_1");
+  }
+});
+
+exportBtnB?.addEventListener("click", () => {
+  if (resultB) {
+    exportToExcel(resultB, "Norrviken_Svart_2");
+  }
 });

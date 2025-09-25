@@ -201,16 +201,31 @@
                     <div id="scheduleOutputs">
                         <div class="schedule" id="scheduleA">
                             <h1>Schema för Norrviken Svart 1</h1>
+                            <button
+                                id="exportA"
+                                type="button"
+                                style="display: none; margin-bottom: 10px"
+                            >
+                                Exportera till Excel
+                            </button>
                             <div class="output" id="outputA"></div>
                         </div>
                         <div class="schedule" id="scheduleB">
                             <h1>Schema för Norrviken Svart 2</h1>
+                            <button
+                                id="exportB"
+                                type="button"
+                                style="display: none; margin-bottom: 10px"
+                            >
+                                Exportera till Excel
+                            </button>
                             <div class="output" id="outputB"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
         <script type="module" src="./dist/app.js"></script>
     </body>
 </html>

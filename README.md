@@ -25,3 +25,20 @@ För att bygga projektet behöver du Node.js och npm installerat på din dator. 
 ```bash
 npm run dev
 ```
+
+## Laglista
+
+Caesar
+Hugo
+Jibreel
+Justin
+Leo
+Matheo
+Matteo
+Melwin
+Nils
+Oliver
+Ousman
+Sigurd
+Ture
+Wilmer
