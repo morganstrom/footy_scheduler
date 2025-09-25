@@ -67,32 +67,120 @@
         max-width: 600px;
         overflow-x: auto;
       }
+
+      /* Layout för den nya applikationen med två steg */
+      .app-container {
+        display: flex;
+      }
+      .sidebar {
+        width: 180px;
+        margin-right: 20px;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        height: fit-content;
+      }
+      .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .sidebar li {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        margin-bottom: 4px;
+      }
+      .sidebar li.active {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+      }
+      .content {
+        flex: 1;
+      }
+      .teams {
+        display: flex;
+        gap: 20px;
+        margin-top: 10px;
+      }
+      .team {
+        flex: 1;
+        background-color: #ffffff;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .team ul {
+        padding-left: 20px;
+      }
+      .schedule {
+        margin-top: 20px;
+      }
     </style>
   </head>
   <body>
     <h1>Planera spelschema för fotbollslag</h1>
-    <form id="scheduleForm">
-      <label for="players">Barnens namn (en per rad eller kommaseparerat)</label>
-      <textarea
-        id="players"
-        rows="5"
-        placeholder="Ange spelarnas namn..."
-        required
-      ></textarea>
-      <label for="matches">Antal matcher</label>
-      <input type="number" id="matches" value="3" min="1" required />
-      <label for="matchLength">Längd per match (minuter)</label>
-      <input type="number" id="matchLength" value="20" min="1" required />
-      <label for="shiftLength">Speltid per byte (minuter)</label>
-      <input type="number" id="shiftLength" value="3" min="1" required />
-      <label for="positions">Antal spelare på planen samtidigt</label>
-      <input type="number" id="positions" value="5" min="1" required />
-      <button type="submit">Generera schema</button>
-    </form>
-
-    <div id="output"></div>
-
-    <!-- Ladda javascript utan att använda ESM för att undvika restriktioner på file:// scheman -->
+    <div class="app-container">
+      <!-- Sidebar med steg -->
+      <nav class="sidebar">
+        <ul>
+          <li id="nav-step1" class="active">1. Dela lag</li>
+          <li id="nav-step2">2. Skapa spelschema</li>
+        </ul>
+      </nav>
+      <!-- Huvudinnehåll -->
+      <div class="content">
+        <!-- Steg 1: Dela lag -->
+        <div id="step1" class="step">
+          <h2>Dela upp lag</h2>
+          <label for="players">Barnens namn (en per rad eller kommaseparerat)</label>
+          <textarea
+            id="players"
+            rows="8"
+            placeholder="Ange spelarnas namn..."
+            required
+          ></textarea>
+          <button id="splitTeamsBtn" type="button">Dela lag slumpmässigt</button>
+          <div id="teamLists" class="teams">
+            <div class="team" id="teamAContainer">
+              <h3>Lag A</h3>
+              <ul id="teamAList"></ul>
+            </div>
+            <div class="team" id="teamBContainer">
+              <h3>Lag B</h3>
+              <ul id="teamBList"></ul>
+            </div>
+          </div>
+        </div>
+        <!-- Steg 2: Skapa spelschema -->
+        <div id="step2" class="step" style="display: none;">
+          <h2>Skapa spelschema</h2>
+          <form id="scheduleForm">
+            <label for="matches">Antal matcher</label>
+            <input type="number" id="matches" value="3" min="1" required />
+            <label for="matchLength">Längd per match (minuter)</label>
+            <input type="number" id="matchLength" value="20" min="1" required />
+            <label for="shiftLength">Speltid per byte (minuter)</label>
+            <input type="number" id="shiftLength" value="3" min="1" required />
+            <label for="positions">Antal spelare på planen samtidigt</label>
+            <input type="number" id="positions" value="5" min="1" required />
+            <button type="submit">Generera schema för båda lag</button>
+          </form>
+          <div id="scheduleOutputs">
+            <div class="schedule" id="scheduleA">
+              <h3>Schema för Lag A</h3>
+              <div class="output" id="outputA"></div>
+            </div>
+            <div class="schedule" id="scheduleB">
+              <h3>Schema för Lag B</h3>
+              <div class="output" id="outputB"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="./main.js"></script>
   </body>
 </html>
