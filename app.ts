@@ -331,9 +331,6 @@ splitBtn?.addEventListener("click", () => {
   // Set up drop zones
   if (containerA) setupTeamDropZone(containerA, "teamA");
   if (containerB) setupTeamDropZone(containerB, "teamB");
-
-  // Automatically switch to step 2
-  showStep(2);
 });
 
 // Handle the form for schedule generation for both teams
