@@ -1,44 +1,126 @@
-# Fotbollslag Spelschema Planerare
+# Footy Scheduler
 
-Den här mappen innehåller en enkel webbapplikation skriven i TypeScript som hjälper dig att dela upp ett lag i två slumpmässiga lag och generera rättvisa spelscheman för dem. Applikationen körs helt i webbläsaren och kräver därför bara att du bygger TypeScript‑koden till JavaScript innan du öppnar sidan.
+Football team schedule planner for splitting teams and generating match schedules.
 
-## Funktioner
+## Configuration Setup
 
-- **Dela lag slumpmässigt**: mata in en lista med spelarnamn (t.ex. 16 barn), klicka på *Dela lag slumpmässigt* så fördelas spelarna i två lag som visas på skärmen.
-- **Skapa spelschema**: ange antal matcher, matchlängd, speltid per byte och hur många spelare som ska vara på planen samtidigt. Appen genererar scheman för båda lagen där varje byte visas med separata kolumner för varje spelare och en sammanställning av total speltid per spelare.
-- **Stegvis arbetsflöde**: en sidopanel guidar dig igenom steg 1 (*Dela lag*) och steg 2 (*Skapa spelschema*).
+This project uses environment-based configuration to support both local development and GitHub Pages deployment.
 
-## Förutsättningar
+### Files
 
-För att bygga projektet behöver du Node.js och npm installerat på din dator. Du kan ladda ned Node.js från [nodejs.org](https://nodejs.org/).
+- **`.env`** - Local environment configuration (gitignored)
+- **`.env.example`** - Template for environment variables
+- **`index.template.html`** - HTML template with `{{BASE_PATH}}` placeholders
+- **`index.html`** - Generated HTML file (gitignored, generated at build time)
+- **`config.js`** - Build script that generates `index.html` from template
 
-## Installation och kompilering
+### Local Development
 
-1. **Kloning eller nedladdning**: kopiera projektmappen `footy_scheduler` till din lokala dator.
-2. **Installera TypeScript** (om du inte redan har det):
-   ```bash
-   npm install
-   ```
+1. Install dependencies:
+```bash
+npm install
+```
 
-## Köra applikationen
+2. The `.env` file is already configured for local development:
+```
+BASE_PATH=/
+```
 
+3. Build and run locally:
 ```bash
 npm run dev
 ```
 
-## Laglista
+This will:
+- Generate `index.html` with `BASE_PATH=/`
+- Compile TypeScript
+- Start local server at http://localhost:8080
 
-Caesar
-Hugo
-Jibreel
-Justin
-Leo
-Matheo
-Matteo
-Melwin
-Nils
-Oliver
-Ousman
-Sigurd
-Ture
-Wilmer
+### GitHub Pages Deployment
+
+The project automatically deploys to GitHub Pages using GitHub Actions.
+
+#### Workflow (`.github/workflows/deploy.yml`)
+
+On push to `main` branch:
+1. Runs `npm run build:gh-pages` which sets `BASE_PATH=/footy_scheduler/`
+2. Generates `index.html` with correct paths for GitHub Pages
+3. Deploys to GitHub Pages
+
+#### Adding Secrets
+
+To add secrets for future use:
+
+1. Go to your GitHub repository
+2. Settings → Secrets and variables → Actions
+3. Click "New repository secret"
+4. Add your secret (e.g., `API_KEY`)
+5. Reference in `.github/workflows/deploy.yml`:
+```yaml
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+```
+
+### Manual Build for GitHub Pages
+
+To manually build for GitHub Pages:
+
+```bash
+npm run build:gh-pages
+```
+
+This generates `index.html` with `BASE_PATH=/footy_scheduler/`
+
+## Scripts
+
+- `npm run config` - Generate index.html from template using .env
+- `npm run build` - Generate HTML and compile TypeScript (local)
+- `npm run build:gh-pages` - Generate HTML for GitHub Pages and compile TypeScript
+- `npm run dev` - Build and start local development server
+- `npm test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+
+## Project Structure
+
+```
+footy_scheduler/
+├── .env                    # Local config (gitignored)
+├── .env.example           # Config template
+├── config.js              # Build configuration script
+├── index.template.html    # HTML template
+├── index.html             # Generated HTML (gitignored)
+├── app.ts                 # Main application code
+├── dist/                  # Compiled JavaScript (gitignored)
+└── .github/
+    └── workflows/
+        └── deploy.yml     # GitHub Actions deployment
+```
+
+## How Configuration Works
+
+1. **Template System**: `index.template.html` contains `{{BASE_PATH}}` placeholders
+2. **Build Script**: `config.js` reads `.env`, replaces placeholders, generates `index.html`
+3. **Environment Variables**:
+   - Local: `BASE_PATH=/` (from `.env`)
+   - GitHub Pages: `BASE_PATH=/footy_scheduler/` (from build script)
+4. **HTML Generation**: The base tag and script paths are set correctly for each environment
+
+### Example
+
+Template (`index.template.html`):
+```html
+<base href="{{BASE_PATH}}" />
+<script type="module" src="{{BASE_PATH}}dist/app.js"></script>
+```
+
+Generated locally (`BASE_PATH=/`):
+```html
+<base href="/" />
+<script type="module" src="/dist/app.js"></script>
+```
+
+Generated for GitHub Pages (`BASE_PATH=/footy_scheduler/`):
+```html
+<base href="/footy_scheduler/" />
+<script type="module" src="/footy_scheduler/dist/app.js"></script>
+```

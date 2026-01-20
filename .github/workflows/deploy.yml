@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with GitHub Pages configuration
+        run: npm run build:gh-pages
+        env:
+          BASE_PATH: /footy_scheduler/
+          # Example of how to use secrets (for future use):
+          # API_KEY: ${{ secrets.API_KEY }}
+
+      - name: Deploy to release branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Checkout release branch (create if doesn't exist)
+          git fetch origin release || true
+          git checkout -B release
+
+          # Remove files that shouldn't be in release
+          rm -rf node_modules .github src *.ts tsconfig.json .env .gitignore
+          rm -rf *.test.ts jest.config.js
+
+          # Keep only what's needed for GitHub Pages:
+          # - index.html (generated with correct BASE_PATH)
+          # - dist/ (compiled JavaScript)
+          # - Any other static assets
+
+          # Add all changes
+          git add -A
+
+          # Commit and push
+          if git diff --staged --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy from main: ${{ github.sha }}"
+            git push -f origin release
+          fi
