@@ -5,6 +5,7 @@
 import {
   generateSchedule,
   shuffleArray,
+  Team,
   type ScheduleResult,
   type ScheduleAssignment,
 } from "./main.js";
@@ -183,8 +184,8 @@ function renderSchedule(result: ScheduleResult, container: HTMLElement) {
 }
 
 // Global storage for teams after random distribution
-let teamA: string[] = [];
-let teamB: string[] = [];
+let teamA: Team | null = null;
+let teamB: Team | null = null;
 
 // Global storage for schedule results
 let resultA: ScheduleResult | null = null;
@@ -214,6 +215,89 @@ function showStep(step: number) {
 navStep1?.addEventListener("click", () => showStep(1));
 navStep2?.addEventListener("click", () => showStep(2));
 
+/**
+ * Renders a team list with drag-and-drop functionality
+ */
+function renderTeamList(team: Team, listElement: HTMLElement, teamId: string) {
+  listElement.innerHTML = "";
+  const playerNames = team.getPlayerNames();
+
+  playerNames.forEach((name, index) => {
+    const li = document.createElement("li");
+    li.textContent = name;
+    li.draggable = true;
+    li.dataset.playerName = name;
+    li.dataset.teamId = teamId;
+    li.style.cursor = "grab";
+    li.style.padding = "8px";
+    li.style.marginBottom = "4px";
+    li.style.backgroundColor = "#f9f9f9";
+    li.style.borderRadius = "4px";
+    li.style.border = "1px solid #ddd";
+
+    // Drag start
+    li.addEventListener("dragstart", (e) => {
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", name);
+        e.dataTransfer.setData("sourceTeam", teamId);
+        li.style.opacity = "0.5";
+      }
+    });
+
+    // Drag end
+    li.addEventListener("dragend", () => {
+      li.style.opacity = "1";
+    });
+
+    listElement.appendChild(li);
+  });
+}
+
+/**
+ * Sets up drag-and-drop handlers for a team container
+ */
+function setupTeamDropZone(containerElement: HTMLElement, teamId: string) {
+  containerElement.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = "move";
+    }
+    containerElement.style.backgroundColor = "#e3f2fd";
+  });
+
+  containerElement.addEventListener("dragleave", () => {
+    containerElement.style.backgroundColor = "#ffffff";
+  });
+
+  containerElement.addEventListener("drop", (e) => {
+    e.preventDefault();
+    containerElement.style.backgroundColor = "#ffffff";
+
+    if (!e.dataTransfer) return;
+
+    const playerName = e.dataTransfer.getData("text/plain");
+    const sourceTeamId = e.dataTransfer.getData("sourceTeam");
+
+    if (!playerName || sourceTeamId === teamId) return;
+
+    // Move player from source team to target team
+    const sourceTeam = sourceTeamId === "teamA" ? teamA : teamB;
+    const targetTeam = teamId === "teamA" ? teamA : teamB;
+
+    if (sourceTeam && targetTeam) {
+      sourceTeam.removePlayer(playerName);
+      targetTeam.addPlayer(playerName);
+
+      // Update both team displays
+      const listA = document.getElementById("teamAList");
+      const listB = document.getElementById("teamBList");
+      if (listA && teamA) renderTeamList(teamA, listA, "teamA");
+      if (listB && teamB) renderTeamList(teamB, listB, "teamB");
+    }
+  });
+}
+
 // Handle random team distribution
 const splitBtn = document.getElementById("splitTeamsBtn");
 splitBtn?.addEventListener("click", () => {
@@ -232,23 +316,22 @@ splitBtn?.addEventListener("click", () => {
   // Shuffle names and split into two teams
   const shuffled = shuffleArray(names);
   const half = Math.ceil(shuffled.length / 2);
-  teamA = shuffled.slice(0, half);
-  teamB = shuffled.slice(half);
-  // Update DOM
+  teamA = new Team(shuffled.slice(0, half));
+  teamB = new Team(shuffled.slice(half));
+
+  // Update DOM with drag-and-drop enabled lists
   const listA = document.getElementById("teamAList");
   const listB = document.getElementById("teamBList");
-  if (listA) listA.innerHTML = "";
-  if (listB) listB.innerHTML = "";
-  teamA.forEach((name) => {
-    const li = document.createElement("li");
-    li.textContent = name;
-    listA?.appendChild(li);
-  });
-  teamB.forEach((name) => {
-    const li = document.createElement("li");
-    li.textContent = name;
-    listB?.appendChild(li);
-  });
+  const containerA = document.getElementById("teamAContainer");
+  const containerB = document.getElementById("teamBContainer");
+
+  if (listA && teamA) renderTeamList(teamA, listA, "teamA");
+  if (listB && teamB) renderTeamList(teamB, listB, "teamB");
+
+  // Set up drop zones
+  if (containerA) setupTeamDropZone(containerA, "teamA");
+  if (containerB) setupTeamDropZone(containerB, "teamB");
+
   // Automatically switch to step 2
   showStep(2);
 });
@@ -278,12 +361,12 @@ scheduleFormEl?.addEventListener("submit", (event) => {
     10,
   );
   // Ensure that teams have been generated
-  if (teamA.length === 0 || teamB.length === 0) {
+  if (!teamA || !teamB || teamA.size() === 0 || teamB.size() === 0) {
     alert("Dela först upp lagen i steg 1 innan du genererar schema.");
     return;
   }
   // Validate that the number of positions does not exceed team sizes
-  if (positionsInput > teamA.length || positionsInput > teamB.length) {
+  if (positionsInput > teamA.size() || positionsInput > teamB.size()) {
     alert(
       "Antalet positioner kan inte överstiga antalet spelare i något av lagen.",
     );
@@ -291,14 +374,14 @@ scheduleFormEl?.addEventListener("submit", (event) => {
   }
   // Generate and render schedule for both teams
   resultA = generateSchedule(
-    teamA,
+    teamA.getPlayerNames(),
     matchesInput,
     matchLengthInput,
     shiftLengthInput,
     positionsInput,
   );
   resultB = generateSchedule(
-    teamB,
+    teamB.getPlayerNames(),
     matchesInput,
     matchLengthInput,
     shiftLengthInput,

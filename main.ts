@@ -41,6 +41,76 @@ export interface ScheduleResult {
 }
 
 /**
+ * Team class that contains a list of Players
+ */
+export class Team {
+  private players: Player[];
+
+  constructor(playerNames: string[]) {
+    this.players = playerNames.map((name) => ({
+      name,
+      totalMinutes: 0,
+      lastShiftIndex: -Infinity,
+    }));
+  }
+
+  /**
+   * Get all players in the team
+   */
+  getPlayers(): Player[] {
+    return this.players;
+  }
+
+  /**
+   * Get player names as an array
+   */
+  getPlayerNames(): string[] {
+    return this.players.map((p) => p.name);
+  }
+
+  /**
+   * Add a player to the team
+   */
+  addPlayer(name: string): void {
+    this.players.push({
+      name,
+      totalMinutes: 0,
+      lastShiftIndex: -Infinity,
+    });
+  }
+
+  /**
+   * Remove a player from the team by name
+   */
+  removePlayer(name: string): boolean {
+    const index = this.players.findIndex((p) => p.name === name);
+    if (index !== -1) {
+      this.players.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Get the number of players in the team
+   */
+  size(): number {
+    return this.players.length;
+  }
+
+  /**
+   * Set players from an array of names
+   */
+  setPlayers(playerNames: string[]): void {
+    this.players = playerNames.map((name) => ({
+      name,
+      totalMinutes: 0,
+      lastShiftIndex: -Infinity,
+    }));
+  }
+}
+
+/**
  * Generates a play schedule based on input data.
  * @param playerNames List of player names
  * @param numMatches Number of matches
