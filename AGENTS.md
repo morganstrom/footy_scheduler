@@ -53,6 +53,17 @@ npm run test:watch # Run tests in watch mode (reruns on file changes)
 
 ## Code Style Requirements
 
+### Language Guidelines
+- **Code and Comments**: Write all code, variable names, function names, comments, and documentation in **English**
+- **User Interface**: Write all user-facing text (button labels, table headers, alert messages, form labels, etc.) in **Swedish**
+- **Examples**:
+  - ✅ Function name: `generateSchedule` (English)
+  - ✅ Comment: `// Calculate total play time` (English)
+  - ✅ Button text: `"Generera schema"` (Swedish)
+  - ✅ Alert message: `"Ange minst två spelare"` (Swedish)
+  - ❌ Function name: `genereraSchema` (Swedish - incorrect)
+  - ❌ Alert message: `"Enter at least two players"` (English - incorrect)
+
 ### TypeScript Standards
 - Use ES modules syntax (`import`/`export`)
 - Use 2-space indentation

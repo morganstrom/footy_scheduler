@@ -13,9 +13,9 @@ import {
 declare const XLSX: any;
 
 /**
- * Exporterar schemat till Excel-format
- * @param result Resultat från generateSchedule
- * @param teamName Namnet på laget
+ * Exports the schedule to Excel format
+ * @param result Result from generateSchedule
+ * @param teamName The name of the team
  */
 function exportToExcel(result: ScheduleResult, teamName: string) {
   const { assignments, totals, positions } = result;
@@ -25,17 +25,17 @@ function exportToExcel(result: ScheduleResult, teamName: string) {
     return;
   }
 
-  // Skapa arbetsboken
+  // Create the workbook
   const workbook = XLSX.utils.book_new();
 
-  // Grupp tilldelningar per match
+  // Group assignments per match
   const grouped: Record<number, ScheduleAssignment[]> = {};
   for (const ass of assignments) {
     if (!grouped[ass.matchIndex]) grouped[ass.matchIndex] = [];
     grouped[ass.matchIndex].push(ass);
   }
 
-  // Skapa data för schemat
+  // Create data for the schedule
   const scheduleData: any[] = [];
 
   Object.keys(grouped)
@@ -44,17 +44,17 @@ function exportToExcel(result: ScheduleResult, teamName: string) {
       const matchIndex = parseInt(matchKey);
       const matchAssignments = grouped[matchIndex];
 
-      // Lägg till matchhuvud
+      // Add match header
       scheduleData.push([`Match ${matchIndex + 1}`, "", "", "", "", ""]);
 
-      // Lägg till header för byten och spelare
+      // Add header for shifts and players
       const header = ["Byte"];
       for (let i = 0; i < positions; i++) {
         header.push(`Spelare ${i + 1}`);
       }
       scheduleData.push(header);
 
-      // Lägg till varje byte
+      // Add each shift
       for (const ass of matchAssignments) {
         const row = [`${ass.shiftIndex + 1}`];
         for (let i = 0; i < positions; i++) {
@@ -63,15 +63,15 @@ function exportToExcel(result: ScheduleResult, teamName: string) {
         scheduleData.push(row);
       }
 
-      // Lägg till tom rad mellan matcher
+      // Add empty row between matches
       scheduleData.push([]);
     });
 
-  // Skapa kalkylblad för schemat
+  // Create worksheet for the schedule
   const scheduleWorksheet = XLSX.utils.aoa_to_sheet(scheduleData);
   XLSX.utils.book_append_sheet(workbook, scheduleWorksheet, "Schema");
 
-  // Skapa data för total speltid
+  // Create data for total play time
   const summaryData: any[] = [
     ["Total speltid per spelare"],
     ["Spelare", "Minuter"],
@@ -83,19 +83,19 @@ function exportToExcel(result: ScheduleResult, teamName: string) {
       summaryData.push([playerName, totals[playerName]]);
     });
 
-  // Skapa kalkylblad för sammanställning
+  // Create worksheet for summary
   const summaryWorksheet = XLSX.utils.aoa_to_sheet(summaryData);
   XLSX.utils.book_append_sheet(workbook, summaryWorksheet, "Speltid");
 
-  // Exportera filen
-  const fileName = `${teamName}_spelschema.xlsx`;
+  // Export the file
+  const fileName = `${teamName}_schedule.xlsx`;
   XLSX.writeFile(workbook, fileName);
 }
 
 /**
- * Renderar spelschemat och sammanställning i DOM.
- * @param result Resultat från generateSchedule.
- * @param container Elementet där innehållet ska placeras.
+ * Renders the play schedule and summary in the DOM.
+ * @param result Result from generateSchedule.
+ * @param container The element where content should be placed.
  */
 function renderSchedule(result: ScheduleResult, container: HTMLElement) {
   const { assignments, totals, positions } = result;
@@ -104,13 +104,13 @@ function renderSchedule(result: ScheduleResult, container: HTMLElement) {
     container.textContent = "Inget schema genererat.";
     return;
   }
-  // Grupp tilldelningar per match
+  // Group assignments per match
   const grouped: Record<number, ScheduleAssignment[]> = {};
   for (const ass of assignments) {
     if (!grouped[ass.matchIndex]) grouped[ass.matchIndex] = [];
     grouped[ass.matchIndex].push(ass);
   }
-  // Skapa HTML för varje match
+  // Create HTML for each match
   Object.keys(grouped)
     .sort((a, b) => parseInt(a) - parseInt(b))
     .forEach((matchKey) => {
@@ -121,11 +121,11 @@ function renderSchedule(result: ScheduleResult, container: HTMLElement) {
       const table = document.createElement("table");
       const thead = document.createElement("thead");
       const headerRow = document.createElement("tr");
-      // Byte kolumn
+      // Shift column
       const thShift = document.createElement("th");
       thShift.textContent = "Byte";
       headerRow.appendChild(thShift);
-      // En kolumn per spelare/position
+      // One column per player/position
       for (let i = 0; i < positions; i++) {
         const th = document.createElement("th");
         th.textContent = `Spelare ${i + 1}`;
@@ -139,7 +139,7 @@ function renderSchedule(result: ScheduleResult, container: HTMLElement) {
         const tdShift = document.createElement("td");
         tdShift.textContent = `${ass.shiftIndex + 1}`;
         row.appendChild(tdShift);
-        // Lägg till spelare i separata kolumner; fyll med tom sträng om färre än positions
+        // Add players in separate columns; fill with empty string if fewer than positions
         for (let i = 0; i < positions; i++) {
           const cell = document.createElement("td");
           cell.textContent = ass.players[i] ?? "";
@@ -150,7 +150,7 @@ function renderSchedule(result: ScheduleResult, container: HTMLElement) {
       table.appendChild(tbody);
       container.appendChild(table);
     });
-  // Skapa tabell för total speltid
+  // Create table for total play time
   const summaryHeader = document.createElement("h2");
   summaryHeader.textContent = "Total speltid per spelare";
   container.appendChild(summaryHeader);
@@ -182,15 +182,15 @@ function renderSchedule(result: ScheduleResult, container: HTMLElement) {
   container.appendChild(summaryTable);
 }
 
-// Globalt lagringsutrymme för lag efter slumpfördelning
+// Global storage for teams after random distribution
 let teamA: string[] = [];
 let teamB: string[] = [];
 
-// Globalt lagringsutrymme för schemaresultat
+// Global storage for schedule results
 let resultA: ScheduleResult | null = null;
 let resultB: ScheduleResult | null = null;
 
-// Navigering mellan steg i sidpanelen
+// Navigation between steps in the sidebar
 const navStep1 = document.getElementById("nav-step1");
 const navStep2 = document.getElementById("nav-step2");
 const step1Div = document.getElementById("step1");
@@ -214,7 +214,7 @@ function showStep(step: number) {
 navStep1?.addEventListener("click", () => showStep(1));
 navStep2?.addEventListener("click", () => showStep(2));
 
-// Hantera slumpmässig lagindelning
+// Handle random team distribution
 const splitBtn = document.getElementById("splitTeamsBtn");
 splitBtn?.addEventListener("click", () => {
   const playersInputEl = document.getElementById(
@@ -229,12 +229,12 @@ splitBtn?.addEventListener("click", () => {
     alert("Ange minst två spelare för att dela upp lagen.");
     return;
   }
-  // Blanda namn och dela i två lag
+  // Shuffle names and split into two teams
   const shuffled = shuffleArray(names);
   const half = Math.ceil(shuffled.length / 2);
   teamA = shuffled.slice(0, half);
   teamB = shuffled.slice(half);
-  // Uppdatera DOM
+  // Update DOM
   const listA = document.getElementById("teamAList");
   const listB = document.getElementById("teamBList");
   if (listA) listA.innerHTML = "";
@@ -249,18 +249,18 @@ splitBtn?.addEventListener("click", () => {
     li.textContent = name;
     listB?.appendChild(li);
   });
-  // Växla till steg 2 automatiskt
+  // Automatically switch to step 2
   showStep(2);
 });
 
-// Hantera formuläret för schemagenerering för båda lag
+// Handle the form for schedule generation for both teams
 const scheduleFormEl = document.getElementById("scheduleForm");
 const outputA = document.getElementById("outputA");
 const outputB = document.getElementById("outputB");
 scheduleFormEl?.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!outputA || !outputB) return;
-  // Läs värden från formuläret
+  // Read values from the form
   const matchesInput = parseInt(
     (document.getElementById("matches") as HTMLInputElement).value,
     10,
@@ -277,19 +277,19 @@ scheduleFormEl?.addEventListener("submit", (event) => {
     (document.getElementById("positions") as HTMLInputElement).value,
     10,
   );
-  // Säkerställ att lag har genererats
+  // Ensure that teams have been generated
   if (teamA.length === 0 || teamB.length === 0) {
     alert("Dela först upp lagen i steg 1 innan du genererar schema.");
     return;
   }
-  // Validera att antalet positioner inte överstiger lagstorlekar
+  // Validate that the number of positions does not exceed team sizes
   if (positionsInput > teamA.length || positionsInput > teamB.length) {
     alert(
       "Antalet positioner kan inte överstiga antalet spelare i något av lagen.",
     );
     return;
   }
-  // Generera och rendera schema för båda lag
+  // Generate and render schedule for both teams
   resultA = generateSchedule(
     teamA,
     matchesInput,
@@ -307,14 +307,14 @@ scheduleFormEl?.addEventListener("submit", (event) => {
   renderSchedule(resultA, outputA as HTMLElement);
   renderSchedule(resultB, outputB as HTMLElement);
 
-  // Visa exportknappar
+  // Show export buttons
   const exportBtnA = document.getElementById("exportA");
   const exportBtnB = document.getElementById("exportB");
   if (exportBtnA) exportBtnA.style.display = "block";
   if (exportBtnB) exportBtnB.style.display = "block";
 });
 
-// Event handlers för exportknappar
+// Event handlers for export buttons
 const exportBtnA = document.getElementById("exportA");
 const exportBtnB = document.getElementById("exportB");
 

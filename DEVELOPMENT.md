@@ -18,6 +18,25 @@ footy_scheduler/
 └── package.json     # Dependencies and scripts
 ```
 
+## Language Guidelines
+
+**IMPORTANT**: This project uses a bilingual approach:
+
+- **Code and Comments**: Write all code, variable names, function names, comments, and documentation in **English**
+  - ✅ `function generateSchedule()` (English)
+  - ✅ `// Calculate total play time` (English)
+  - ❌ `function genereraSchema()` (Swedish - incorrect)
+
+- **User Interface**: Write all user-facing text (button labels, table headers, alert messages, form labels, etc.) in **Swedish**
+  - ✅ Button text: `"Generera schema"` (Swedish)
+  - ✅ Alert: `alert("Ange minst två spelare")` (Swedish)
+  - ❌ Button text: `"Generate schedule"` (English - incorrect)
+
+This separation ensures:
+- International developers can understand and maintain the code
+- Swedish end-users have a localized interface
+- Clear distinction between implementation and presentation
+
 ## File Structure Explained
 
 ### `main.ts` - Core Functions (Testable)

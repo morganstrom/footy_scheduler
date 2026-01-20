@@ -1,24 +1,24 @@
 /**
- * Fotbollslag Spelschema Planerare - Core Functions
+ * Football Team Schedule Planner - Core Functions
  *
- * Denna fil innehåller en enkel algoritm för att allokera speltider
- * jämnt mellan spelare över flera matcher. Användaren anger en lista med
- * barnens namn, antal matcher, längden på varje match, speltid per byte
- * och hur många spelare som ska vara på planen samtidigt. Algoritmen
- * delar upp varje match i lika långa byten (baserat på angiven speltid
- * per byte) och använder sedan en greedy-strategi för att välja de
- * spelare som har spelat minst tid hittills. Den försöker också undvika
- * att samma spelare spelar två byten i rad i samma match när det är
- * möjligt.
+ * This file contains a simple algorithm to allocate play times
+ * evenly between players across multiple matches. The user provides a list
+ * of children's names, number of matches, the length of each match, play time per shift,
+ * and how many players should be on the field simultaneously. The algorithm
+ * divides each match into equally long shifts (based on the specified play time
+ * per shift) and then uses a greedy strategy to select the
+ * players who have played the least time so far. It also tries to avoid
+ * having the same player play two shifts in a row in the same match when
+ * possible.
  */
 
 export interface Player {
   name: string;
   totalMinutes: number;
   /**
-   * Den senaste byte positionen (index) som spelaren deltog i under
-   * den aktuella matchen. Används för att undvika direkt upprepning i
-   * samma match.
+   * The latest shift position (index) that the player participated in during
+   * the current match. Used to avoid direct repetition in
+   * the same match.
    */
   lastShiftIndex: number;
 }
@@ -30,9 +30,9 @@ export interface ScheduleAssignment {
 }
 
 /**
- * Resultatstruktur från schema-generatorn. Innehåller listan med
- * schematilldelningar, en uppsummering av varje spelares totala speltid
- * och antalet positioner på planen.
+ * Result structure from the schedule generator. Contains the list of
+ * schedule assignments, a summary of each player's total play time,
+ * and the number of positions on the field.
  */
 export interface ScheduleResult {
   assignments: ScheduleAssignment[];
@@ -41,13 +41,13 @@ export interface ScheduleResult {
 }
 
 /**
- * Genererar ett spelschema baserat på indata.
- * @param playerNames Lista med spelarnas namn
- * @param numMatches Antal matcher
- * @param matchLength Längd på match i minuter
- * @param shiftLength Längd på varje byte i minuter
- * @param positions Antal spelare som spelar samtidigt
- * @returns En lista med schematilldelningar
+ * Generates a play schedule based on input data.
+ * @param playerNames List of player names
+ * @param numMatches Number of matches
+ * @param matchLength Length of match in minutes
+ * @param shiftLength Length of each shift in minutes
+ * @param positions Number of players playing simultaneously
+ * @returns A list of schedule assignments
  */
 export function generateSchedule(
   playerNames: string[],
@@ -56,11 +56,11 @@ export function generateSchedule(
   shiftLength: number,
   positions: number,
 ): ScheduleResult {
-  // Filtera bort tomma eller duplicerade namn och trimma whitespace
+  // Filter out empty or duplicate names and trim whitespace
   const uniqueNames = Array.from(
     new Set(playerNames.map((n) => n.trim()).filter((n) => n.length > 0)),
   );
-  // Skapa spelare med ackumulatorer
+  // Create players with accumulators
   const players: Player[] = uniqueNames.map((name) => ({
     name,
     totalMinutes: 0,
@@ -68,22 +68,22 @@ export function generateSchedule(
   }));
   const assignments: ScheduleAssignment[] = [];
   if (players.length === 0) return { assignments, totals: {}, positions };
-  // Total tabell med speltider per spelare
+  // Total table with play times per player
   const totals: Record<string, number> = {};
   players.forEach((p) => (totals[p.name] = 0));
 
   for (let m = 0; m < numMatches; m++) {
-    // Återställ lastShiftIndex för varje match
+    // Reset lastShiftIndex for each match
     players.forEach((p) => {
       p.lastShiftIndex = -Infinity;
     });
-    // Antal byten per match. Om matchen inte delar sig jämnt in i byten
-    // kommer den sista bytet att vara kortare än shiftLength.
+    // Number of shifts per match. If the match doesn't divide evenly into shifts,
+    // the last shift will be shorter than shiftLength.
     const fullShifts = Math.floor(matchLength / shiftLength);
     const remainder = matchLength % shiftLength;
     const shiftsInMatch = remainder > 0 ? fullShifts + 1 : fullShifts;
     for (let s = 0; s < shiftsInMatch; s++) {
-      // Sortera spelare efter minsta totalMinutes; bryt lika genom namnordning
+      // Sort players by lowest totalMinutes; break ties by name order
       const sortedPlayers = [...players].sort((a, b) => {
         if (a.totalMinutes === b.totalMinutes) {
           return a.name.localeCompare(b.name);
@@ -93,13 +93,13 @@ export function generateSchedule(
       const selected: Player[] = [];
       for (const candidate of sortedPlayers) {
         if (selected.length >= positions) break;
-        // Undvik två byten i rad för samma spelare (om möjligt)
+        // Avoid two shifts in a row for the same player (if possible)
         if (players.length > positions && candidate.lastShiftIndex === s - 1) {
           continue;
         }
         selected.push(candidate);
       }
-      // Fyll upp om vi inte fått tillräckligt många spelare
+      // Fill up if we haven't gotten enough players
       if (selected.length < positions) {
         for (const candidate of sortedPlayers) {
           if (selected.includes(candidate)) continue;
@@ -107,10 +107,10 @@ export function generateSchedule(
           if (selected.length >= positions) break;
         }
       }
-      // Faktisk längd på bytet: antingen full längd eller remainder
+      // Actual length of the shift: either full length or remainder
       const currentShiftLength =
         s === shiftsInMatch - 1 && remainder > 0 ? remainder : shiftLength;
-      // Spara tilldelning och uppdatera speltider
+      // Save assignment and update play times
       const names = selected.map((p) => p.name);
       assignments.push({ matchIndex: m, shiftIndex: s, players: names });
       for (const p of selected) {
@@ -124,7 +124,7 @@ export function generateSchedule(
 }
 
 /**
- * Funktion för att blanda en array slumpmässigt (Fisher–Yates)
+ * Function to shuffle an array randomly (Fisher–Yates)
  */
 export function shuffleArray<T>(array: T[]): T[] {
   const arr = [...array];
