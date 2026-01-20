@@ -216,7 +216,7 @@ navStep1?.addEventListener("click", () => showStep(1));
 navStep2?.addEventListener("click", () => showStep(2));
 
 /**
- * Renders a team list with drag-and-drop functionality
+ * Renders a team list with drag-and-drop functionality (mouse and touch)
  */
 function renderTeamList(team: Team, listElement: HTMLElement, teamId: string) {
   listElement.innerHTML = "";
@@ -229,13 +229,15 @@ function renderTeamList(team: Team, listElement: HTMLElement, teamId: string) {
     li.dataset.playerName = name;
     li.dataset.teamId = teamId;
     li.style.cursor = "grab";
-    li.style.padding = "8px";
-    li.style.marginBottom = "4px";
+    li.style.padding = "12px";
+    li.style.marginBottom = "6px";
     li.style.backgroundColor = "#f9f9f9";
     li.style.borderRadius = "4px";
     li.style.border = "1px solid #ddd";
+    li.style.transition = "transform 0.1s, opacity 0.2s";
+    li.style.userSelect = "none";
 
-    // Drag start
+    // Mouse drag events
     li.addEventListener("dragstart", (e) => {
       if (e.dataTransfer) {
         e.dataTransfer.effectAllowed = "move";
@@ -245,9 +247,132 @@ function renderTeamList(team: Team, listElement: HTMLElement, teamId: string) {
       }
     });
 
-    // Drag end
     li.addEventListener("dragend", () => {
       li.style.opacity = "1";
+    });
+
+    // Touch events for mobile
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isDragging = false;
+    let clone: HTMLElement | null = null;
+    let currentDropZone: HTMLElement | null = null;
+
+    li.addEventListener(
+      "touchstart",
+      (e) => {
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        isDragging = false;
+        li.style.cursor = "grabbing";
+      },
+      { passive: true },
+    );
+
+    li.addEventListener(
+      "touchmove",
+      (e) => {
+        const touch = e.touches[0];
+        const deltaX = Math.abs(touch.clientX - touchStartX);
+        const deltaY = Math.abs(touch.clientY - touchStartY);
+
+        // Start dragging if moved more than 10px
+        if (!isDragging && (deltaX > 10 || deltaY > 10)) {
+          isDragging = true;
+          li.style.opacity = "0.3";
+
+          // Create a visual clone that follows the finger
+          clone = li.cloneNode(true) as HTMLElement;
+          clone.style.position = "fixed";
+          clone.style.pointerEvents = "none";
+          clone.style.zIndex = "1000";
+          clone.style.width = li.offsetWidth + "px";
+          clone.style.opacity = "0.8";
+          clone.style.transform = "scale(1.05)";
+          document.body.appendChild(clone);
+        }
+
+        if (isDragging && clone) {
+          e.preventDefault();
+          // Position clone at touch location
+          clone.style.left = touch.clientX - clone.offsetWidth / 2 + "px";
+          clone.style.top = touch.clientY - clone.offsetHeight / 2 + "px";
+
+          // Check if we're over a drop zone
+          const elemBelow = document.elementFromPoint(
+            touch.clientX,
+            touch.clientY,
+          );
+          const dropZone = elemBelow?.closest(".team") as HTMLElement | null;
+
+          if (dropZone && dropZone !== currentDropZone) {
+            currentDropZone?.classList.remove("drag-over");
+            dropZone.classList.add("drag-over");
+            currentDropZone = dropZone;
+          } else if (!dropZone && currentDropZone) {
+            currentDropZone.classList.remove("drag-over");
+            currentDropZone = null;
+          }
+        }
+      },
+      { passive: false },
+    );
+
+    li.addEventListener("touchend", (e) => {
+      li.style.cursor = "grab";
+      li.style.opacity = "1";
+
+      if (isDragging && clone) {
+        const touch = e.changedTouches[0];
+        const elemBelow = document.elementFromPoint(
+          touch.clientX,
+          touch.clientY,
+        );
+        const dropZone = elemBelow?.closest(".team") as HTMLElement | null;
+
+        if (dropZone) {
+          dropZone.classList.remove("drag-over");
+          const targetTeamId =
+            dropZone.id === "teamAContainer" ? "teamA" : "teamB";
+
+          // Only move if dropping on different team
+          if (targetTeamId !== teamId) {
+            const sourceTeam = teamId === "teamA" ? teamA : teamB;
+            const targetTeam = targetTeamId === "teamA" ? teamA : teamB;
+
+            if (sourceTeam && targetTeam) {
+              sourceTeam.removePlayer(name);
+              targetTeam.addPlayer(name);
+
+              // Update both team displays
+              const listA = document.getElementById("teamAList");
+              const listB = document.getElementById("teamBList");
+              if (listA && teamA) renderTeamList(teamA, listA, "teamA");
+              if (listB && teamB) renderTeamList(teamB, listB, "teamB");
+            }
+          }
+        }
+
+        currentDropZone?.classList.remove("drag-over");
+        currentDropZone = null;
+        clone.remove();
+        clone = null;
+      }
+
+      isDragging = false;
+    });
+
+    li.addEventListener("touchcancel", () => {
+      li.style.cursor = "grab";
+      li.style.opacity = "1";
+      if (clone) {
+        clone.remove();
+        clone = null;
+      }
+      currentDropZone?.classList.remove("drag-over");
+      currentDropZone = null;
+      isDragging = false;
     });
 
     listElement.appendChild(li);
