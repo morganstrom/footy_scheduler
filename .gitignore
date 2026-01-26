@@ -1,7 +1,0 @@
-node_modules/
-
-# Environment files (keep .env.example for reference)
-.env
-
-# Generated HTML (generated from template)
-index.html
