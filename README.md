@@ -2,6 +2,28 @@
 
 Football team schedule planner for splitting teams and generating match schedules.
 
+## Quick Start
+
+### For End Users (Running Locally)
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Run the application:
+```bash
+npm run dev
+```
+
+3. Open your browser at http://localhost:8080
+
+That's it! The app will automatically build and serve.
+
+### For Developers
+
+If you're planning to modify or extend the code, see [DEVELOPMENT.md](DEVELOPMENT.md) for architecture details, coding standards, and development workflow.
+
 ## Configuration Setup
 
 This project uses environment-based configuration to support both local development and GitHub Pages deployment.
@@ -85,15 +107,19 @@ This generates `index.html` with `BASE_PATH=/footy_scheduler/`
 ```
 footy_scheduler/
 ├── .env                    # Local config (gitignored)
-├── .env.example           # Config template
-├── config.js              # Build configuration script
-├── index.template.html    # HTML template
-├── index.html             # Generated HTML (gitignored)
-├── app.ts                 # Main application code
-├── dist/                  # Compiled JavaScript (gitignored)
+├── .env.example            # Config template
+├── config.js               # Build configuration script
+├── index.template.html     # HTML template (source)
+├── index.html              # Generated HTML (gitignored)
+├── main.ts                 # Core business logic
+├── app.ts                  # UI and DOM interactions
+├── main.test.ts            # Unit tests
+├── dist/                   # Compiled JavaScript (gitignored)
+│   ├── main.js             # Compiled core functions
+│   └── app.js              # Compiled UI logic (entry point)
 └── .github/
     └── workflows/
-        └── deploy.yml     # GitHub Actions deployment
+        └── deploy.yml      # GitHub Actions deployment
 ```
 
 ## How Configuration Works

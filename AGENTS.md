@@ -20,12 +20,31 @@ Footy Scheduler is a TypeScript-based football team schedule planner with a brow
   - Calls core scheduling functions from `main.ts`
   - Acts as the bridge between UI and domain logic
 
-- **`index.html`**: Browser entrypoint
-  - Loads the compiled bundle from `dist/main.js`
+- **`index.template.html`**: HTML template (source file)
+  - Contains `{{BASE_PATH}}` placeholders for environment-specific paths
+  - Processed by `config.js` to generate `index.html`
+  - Loads the compiled bundle from `dist/app.js`
   - Contains the UI structure and styling
 
-### Generated & Configuration Files
+### Configuration System
+- **`config.js`**: Build script that generates `index.html` from `index.template.html`
+  - Reads environment variables from `.env` file
+  - Replaces `{{BASE_PATH}}` placeholders with appropriate paths
+  - Supports both local development (`/`) and GitHub Pages (`/footy_scheduler/`) paths
+
+- **`.env`**: Local environment configuration (gitignored)
+  - Sets `BASE_PATH=/` for local development
+  - See `.env.example` for template
+
+- **`index.html`**: Generated HTML file (gitignored)
+  - **Never edit directly** - edit `index.template.html` instead
+  - Generated automatically by `npm run config` or `npm run build`
+  - Contains environment-specific paths
+
+### Generated & Build Files
 - **`dist/`**: TypeScript compiler output (never edit manually)
+  - `dist/app.js` - Compiled UI logic (entry point)
+  - `dist/main.js` - Compiled core functions (imported by app.js)
 - **`package.json`**: NPM scripts, dependencies, and Jest configuration
 - **`tsconfig.json`**: TypeScript strict mode compiler settings
 - **`main.test.ts`**: Jest test suite for scheduling logic
@@ -39,8 +58,10 @@ npm install  # Install TypeScript, Jest, and dependencies
 
 ### Build Commands
 ```bash
-npm run build      # Compile TypeScript to JavaScript (outputs to dist/)
-npm run dev        # Build and start development server at http://localhost:8080
+npm run config           # Generate index.html from template using .env
+npm run build            # Generate HTML + compile TypeScript (outputs to dist/)
+npm run build:gh-pages   # Build for GitHub Pages deployment (BASE_PATH=/footy_scheduler/)
+npm run dev              # Build and start development server at http://localhost:8080
 ```
 
 ### Testing Commands
@@ -166,9 +187,10 @@ npm run test:watch # Run tests in watch mode (reruns on file changes)
 
 ### What NOT to Do
 - Don't edit files in `dist/` (they're generated)
+- Don't edit `index.html` directly (edit `index.template.html` instead)
 - Don't mix domain logic with UI code
 - Don't use `var` for variable declarations
-- Don't commit `node_modules/` or compiled assets
+- Don't commit `node_modules/`, `index.html`, or compiled assets in `dist/`
 - Don't skip running tests before committing
 - Don't add unnecessary dependencies without discussion
 
@@ -177,7 +199,9 @@ npm run test:watch # Run tests in watch mode (reruns on file changes)
 | Task | Command |
 |------|---------|
 | Install dependencies | `npm install` |
+| Generate HTML from template | `npm run config` |
 | Build project | `npm run build` |
+| Build for GitHub Pages | `npm run build:gh-pages` |
 | Run tests | `npm test` |
 | Watch tests | `npm run test:watch` |
 | Development server | `npm run dev` |
